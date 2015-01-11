@@ -1,6 +1,5 @@
 module Balance where
 
-import System.Locale
 import Data.Time.Format
 import Data.Time.Calendar
 import Data.List
@@ -17,33 +16,11 @@ hoursPerDay = 38 / 5
 -- >>> getWorkBalanceFromHamsterOutput "2014-01-01" "2014-01-03" "\nFoo\nFoo: 16.0h, Frob frab: 0.1h\n\n"
 -- 0.9000000000000021
 --
-getWorkBalanceFromHamsterOutput :: String -> String -> String -> Double
+getWorkBalanceFromHamsterOutput :: Day -> Day -> String -> Double
 getWorkBalanceFromHamsterOutput from to output = actual - expected
-    where days = getDiffDays from to
-          expected = expectedHours $ days
+    where days = diffDays from to
+          expected = expectedHours days
           actual = getWorkedHours $ cleanHamsterOutput output
-
--- | Calculate day difference between two dates given as strings
--- formatted as %F
--- >>> getDiffDays "2014-01-01" "2014-01-02"
--- 1
--- >>> getDiffDays "2014-01-01" "2014-01-30"
--- 29
-getDiffDays :: String -> String -> Integer
-getDiffDays from to =
-    case getDayToday from of
-        Just f -> case getDayToday to of
-            Just t -> diffDays t f
-            Nothing -> 0
-        Nothing -> 0
-
--- | Converts a datestring to a Day
--- >>> getDayToday "2014-04-01"
--- Just 2014-04-01
--- >>> getDayToday "20-412-asdf"
--- Nothing
-getDayToday :: String -> Maybe Day
-getDayToday xs = parseTime defaultTimeLocale "%F" xs
 
 
 -- | Calculate work days for a given number of days
