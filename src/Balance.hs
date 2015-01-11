@@ -37,7 +37,7 @@ workdays :: Integer -> Integer
 workdays n = toInteger $ length workdays
     where workdays = snd $ partition (<= 1) [x `mod` 7 | x <- [0..n + 1]]
 
--- | Calculate expected ours with the given workdays
+-- | Calculate expected hours with the given workdays
 -- >>> expectedHours 7
 -- 38.0
 -- >>> expectedHours 5 == expectedHours 7
