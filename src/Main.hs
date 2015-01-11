@@ -11,7 +11,7 @@ import Balance
 default (LT.Text)
 
 startDate :: Day
-startDate = fromGregorian 2015 1 1
+startDate = fromGregorian 2015 1 5
 
 toString :: LT.Text -> String
 toString xs = LT.unpack xs
