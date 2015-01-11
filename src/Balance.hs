@@ -11,14 +11,12 @@ hoursPerDay = 38 / 5
 
 
 -- | Calculates the work balance in hours
--- >>> getWorkBalanceFromHamsterOutput "2014-01-01" "2014-01-03" "\nFoo\nFoo: 15.0h, Frob frab: 0.2h\n\n"
--- 0.0
--- >>> getWorkBalanceFromHamsterOutput "2014-01-01" "2014-01-03" "\nFoo\nFoo: 16.0h, Frob frab: 0.1h\n\n"
+-- >>> getWorkBalanceFromHamsterOutput (fromGregorian 2014 1 1) (fromGregorian 2014 1 3) "\nFoo\nFoo: 16.0h, Frob frab: 0.1h\n\n"
 -- 0.9000000000000021
 --
 getWorkBalanceFromHamsterOutput :: Day -> Day -> String -> Double
 getWorkBalanceFromHamsterOutput from to output = actual - expected
-    where days = diffDays from to
+    where days = diffDays to from
           expected = expectedHours days
           actual = getWorkedHours $ cleanHamsterOutput output
 
