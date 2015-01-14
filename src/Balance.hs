@@ -33,19 +33,17 @@ getWorkBalanceFromHamsterOutput from to output = actual - expected
 -- 42
 workdays :: Integer -> Integer
 workdays n = toInteger $ length workdays
-    where workdays = snd $ partition (<= 1) [x `mod` 7 | x <- [0..n + 1]]
+    where workdays = snd $ partition (\x -> x == 0 || x == 6) [x `mod` 7 | x <- [0..n + 1]]
 
 -- | Calculate expected hours with the given workdays
 -- >>> expectedHours 7
--- 38.0
--- >>> expectedHours 5 == expectedHours 7
--- True
+-- 45.6
 -- >>> expectedHours 0
 -- 0.0
 -- >>> expectedHours (-1)
 -- 0.0
 expectedHours :: Integer -> Double
-expectedHours n = (fromIntegral $ workdays n) * hoursPerDay
+expectedHours n = fromIntegral (workdays n) * hoursPerDay
 
 -- | Receives output from Hamster and extracts the total worked hours
 -- >>> getWorkedHours []
