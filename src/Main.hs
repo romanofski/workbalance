@@ -35,7 +35,7 @@ getHamsterOutput x y = do
         return output
 
 main :: IO ()
-main = shelly $ do
+main = shelly $ silently $ do
     nowTime <- liftIO $ getCurrentTime
     let yD = yesterDay nowTime
 
