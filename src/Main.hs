@@ -9,6 +9,7 @@ import Data.Time.Calendar (addDays)
 import Data.Time
 import System.Locale
 import Balance
+import Text.Printf (printf)
 default (LT.Text)
 
 startDate :: Day
@@ -41,4 +42,4 @@ main = shelly $ do
     output <- getHamsterOutput startDate yD
     let raw = LT.unpack (LT.fromStrict output)
     let balance = getWorkBalanceFromHamsterOutput startDate yD raw
-    liftIO $ putStrLn (show balance)
+    liftIO $ printf "W: %.2f" balance
