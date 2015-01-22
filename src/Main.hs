@@ -20,15 +20,25 @@ toString xs = LT.unpack xs
 toInternalText :: String -> T.Text
 toInternalText xs = LT.toStrict $ LT.pack xs
 
+yesterDay :: UTCTime -> Day
+yesterDay x = addDays (-1) (utctDay x)
+
+-- | return the raw output by invoking 'hamster search'
+-- The function expects two dates: from and to date which define the
+-- range hamster is looking for entries.
+getHamsterOutput :: Day -> Day -> Sh (T.Text)
+getHamsterOutput x y = do
+        let fromDate = formatTime defaultTimeLocale (toString "%F") x
+        let toDate = formatTime defaultTimeLocale (toString "%F") y
+        output <- run "hamster" ["search", "", (toInternalText fromDate), (toInternalText toDate)]
+        return output
+
 main :: IO ()
-main = shelly $ verbosely $ do
+main = shelly $ do
     nowTime <- liftIO $ getCurrentTime
-    let yesterDay = addDays (-1) (utctDay nowTime)
-    let toDate = formatTime defaultTimeLocale (toString "%F") yesterDay
-    let fromDate = formatTime defaultTimeLocale (toString "%F") startDate
+    let yD = yesterDay nowTime
 
-    output <- run "hamster" ["search", "", (toInternalText fromDate), (toInternalText toDate)]
-
+    output <- getHamsterOutput startDate yD
     let raw = LT.unpack (LT.fromStrict output)
-    let balance = getWorkBalanceFromHamsterOutput startDate yesterDay raw
+    let balance = getWorkBalanceFromHamsterOutput startDate yD raw
     liftIO $ putStrLn (show balance)
