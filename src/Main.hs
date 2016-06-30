@@ -7,7 +7,6 @@ import qualified Data.Text.Lazy as LT
 import qualified Data.Text as T
 import Data.Time.Calendar (addDays)
 import Data.Time
-import System.Locale
 import Balance
 import Text.Printf (printf)
 default (LT.Text)
