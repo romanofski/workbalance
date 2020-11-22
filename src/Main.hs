@@ -12,7 +12,7 @@ import Text.Printf (printf)
 default (LT.Text)
 
 startDate :: Day
-startDate = fromGregorian 2015 1 5
+startDate = fromGregorian 2020 11 9
 
 toString :: LT.Text -> String
 toString xs = LT.unpack xs
@@ -31,6 +31,7 @@ getHamsterOutput x y = do
         let fromDate = formatTime defaultTimeLocale (toString "%F") x
         let toDate = formatTime defaultTimeLocale (toString "%F") y
         output <- run "hamster" ["search", "", (toInternalText fromDate), (toInternalText toDate)]
+                  -|- run "grep" ["Total"]
         return output
 
 main :: IO ()
@@ -39,6 +40,6 @@ main = shelly $ silently $ do
     let yD = yesterDay nowTime
 
     output <- getHamsterOutput startDate yD
-    let raw = LT.unpack (LT.fromStrict output)
-    let balance = getWorkBalanceFromHamsterOutput startDate yD raw
-    liftIO $ printf "W: %.2f" balance
+    case getWorkBalanceFromHamsterOutput startDate yD output of
+      Left err -> liftIO $ printf "Parsing Error of hamster output: %s \n%s" (T.unpack output) err
+      Right balance -> liftIO $ printf "W: %.2f" balance

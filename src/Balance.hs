@@ -4,6 +4,8 @@ import Data.Time.Format
 import Data.Time.Calendar
 import Data.List
 import Data.Char
+import qualified Data.Text as T
+import qualified Data.Attoparsec.Text as AT
 
 
 hoursPerDay :: Double
@@ -11,14 +13,15 @@ hoursPerDay = 38 / 5
 
 
 -- | Calculates the work balance in hours
--- >>> getWorkBalanceFromHamsterOutput (fromGregorian 2014 1 1) (fromGregorian 2014 1 3) "\nFoo\nFoo: 16.0h, Frob frab: 0.1h\n\n"
--- 0.9000000000000021
+-- >>> getWorkBalanceFromHamsterOutput (fromGregorian 2020 11 16) (fromGregorian 2020 11 18) (T.pack "Total: 15h 12min\n")
+-- Right 0.0
 --
-getWorkBalanceFromHamsterOutput :: Day -> Day -> String -> Double
-getWorkBalanceFromHamsterOutput from to output = actual - expected
+getWorkBalanceFromHamsterOutput :: Day -> Day -> T.Text -> Either String Double
+getWorkBalanceFromHamsterOutput from to output = (\actual -> actual - expected)
+                                                 <$> getWorkedHours output
     where days = diffDays to from
+          expected :: Double
           expected = expectedHours days
-          actual = getWorkedHours $ cleanHamsterOutput output
 
 
 -- | Calculate work days for a given number of days
@@ -32,12 +35,12 @@ getWorkBalanceFromHamsterOutput from to output = actual - expected
 -- >>> workdays 58
 -- 42
 workdays :: Integer -> Integer
-workdays n = toInteger $ length workdays
-    where workdays = snd $ partition (\x -> x == 0 || x == 6) [x `mod` 7 | x <- [0..n + 1]]
+workdays n = toInteger $ length go
+    where go = snd $ partition (\x -> x == 0 || x == 6) [x `mod` 7 | x <- [0..n]]
 
 -- | Calculate expected hours with the given workdays
 -- >>> expectedHours 7
--- 45.6
+-- 38.0
 -- >>> expectedHours 0
 -- 0.0
 -- >>> expectedHours (-1)
@@ -46,20 +49,15 @@ expectedHours :: Integer -> Double
 expectedHours n = fromIntegral (workdays n) * hoursPerDay
 
 -- | Receives output from Hamster and extracts the total worked hours
--- >>> getWorkedHours []
--- 0.0
--- >>> getWorkedHours ["26.1","1"]
--- 27.1
-getWorkedHours:: [String] -> Double
-getWorkedHours xs = sum $ map read xs
+-- >>> getWorkedHours (T.pack "Total: 15h 21min\n")
+-- Right 15.35
+-- >>> getWorkedHours (T.pack "Frob asdf\n\n")
+-- Left "not enough input"
+getWorkedHours:: T.Text -> Either String Double
+getWorkedHours = AT.parseOnly parseHoursMinutes
 
-
--- | Helper to take a chunk of hamster output and return list of strings
--- with hours
--- >>> cleanHamsterOutput "\nFoo\nFoo: 26.1h, Frob frab: 1.4h\n\n"
--- ["26.1","1.4"]
-cleanHamsterOutput :: String -> [String]
-cleanHamsterOutput [] = []
-cleanHamsterOutput raw = filter (not . null) $ fmap filterOutLetters (words substring)
-    where substring = reverse (lines raw) !! 1
-          filterOutLetters = filter (\x -> (x == '.' || isDigit x))
+parseHoursMinutes :: AT.Parser Double
+parseHoursMinutes = do
+  hours <- AT.skipWhile (not . isDigit) *> AT.double
+  minutes <- AT.skipWhile (not . isDigit) *> AT.double
+  pure (hours + (minutes * 1 / 60))
