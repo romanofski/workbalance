@@ -57,6 +57,8 @@ expectedHours n = fromIntegral (workdays n) * hoursPerDay
 -- | Receives output from Hamster and extracts the total worked hours
 -- >>> getWorkedHours (T.pack "Total: 15h 21min\n")
 -- Right 15.35
+-- >>> getWorkedHours (T.pack "Total: 15h\n")
+-- Right 15.0
 -- >>> getWorkedHours (T.pack "Frob asdf\n\n")
 -- Left "not enough input"
 getWorkedHours:: T.Text -> Either String Double
@@ -65,5 +67,5 @@ getWorkedHours = AT.parseOnly parseHoursMinutes
 parseHoursMinutes :: AT.Parser Double
 parseHoursMinutes = do
   hours <- AT.skipWhile (not . isDigit) *> AT.double
-  minutes <- AT.skipWhile (not . isDigit) *> AT.double
+  minutes <- AT.skipWhile (not . isDigit) *> (AT.double <|> pure 0)
   pure (hours + (minutes * 1 / 60))
