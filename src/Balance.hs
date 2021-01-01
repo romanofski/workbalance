@@ -1,9 +1,9 @@
 module Balance where
 
-import Data.Time.Format
 import Data.Time.Calendar
 import Data.List
 import Data.Char
+import Control.Applicative ((<|>))
 import qualified Data.Text as T
 import qualified Data.Attoparsec.Text as AT
 
@@ -13,8 +13,8 @@ hoursPerDay = 38 / 5
 
 
 -- | Calculates the work balance in hours
--- >>> getWorkBalanceFromHamsterOutput (fromGregorian 2020 11 16) (fromGregorian 2020 11 18) (T.pack "Total: 15h 12min\n")
--- Right 0.0
+-- >>> round <$> getWorkBalanceFromHamsterOutput (fromGregorian 2020 11 16) (fromGregorian 2020 11 17) (T.pack "Total: 15h\n")
+-- Right 0
 --
 getWorkBalanceFromHamsterOutput :: Day -> Day -> T.Text -> Either String Double
 getWorkBalanceFromHamsterOutput from to output = (\actual -> actual - expected)
@@ -24,28 +24,34 @@ getWorkBalanceFromHamsterOutput from to output = (\actual -> actual - expected)
           expected = expectedHours days
 
 
--- | Calculate work days for a given number of days
+-- | Calculate work days for a given number of days. This function
+-- compensates the exclusion of a work day. For example:
+-- >>> workdays 7
+-- 6
+--
+-- since we want to know the balance for the n+1 day.
+--
+-- This is due to the fact, that we usually calculate on an n+1 day.
 -- Note: This function is inefficient. I go over all days and divide
 -- them up into weeks, filter out the weekends and then see how many
 -- remaining days there are.
--- >>> workdays 14
--- 10
 -- >>> workdays 30
--- 22
+-- 23
 -- >>> workdays 58
--- 42
+-- 43
 workdays :: Integer -> Integer
 workdays n = toInteger $ length go
-    where go = snd $ partition (\x -> x == 0 || x == 6) [x `mod` 7 | x <- [0..n]]
+    where go = snd $ partition (\x -> x == 0 || x == 6) [x `mod` 7 | x <- [0..n + 1]]
 
 -- | Calculate expected hours with the given workdays
--- >>> expectedHours 7
--- 38.0
+-- >>> round $ expectedHours 7
+-- 46
 -- >>> expectedHours 0
 -- 0.0
 -- >>> expectedHours (-1)
 -- 0.0
 expectedHours :: Integer -> Double
+expectedHours 0 = 0.0
 expectedHours n = fromIntegral (workdays n) * hoursPerDay
 
 -- | Receives output from Hamster and extracts the total worked hours
