@@ -9,7 +9,7 @@ import qualified Data.Attoparsec.Text as AT
 
 
 hoursPerDay :: Double
-hoursPerDay = 38 / 5
+hoursPerDay = 37.5 / 5
 
 
 -- | Calculates the work balance in hours

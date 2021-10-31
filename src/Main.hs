@@ -12,7 +12,7 @@ import Text.Printf (printf)
 default (LT.Text)
 
 startDate :: Day
-startDate = fromGregorian 2020 11 9
+startDate = fromGregorian 2021 11 1
 
 toString :: LT.Text -> String
 toString xs = LT.unpack xs
